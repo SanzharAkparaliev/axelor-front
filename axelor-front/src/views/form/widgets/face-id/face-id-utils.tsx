@@ -1,14 +1,18 @@
-import {CircularProgress} from "@axelor/ui";
-import React, {useCallback, useEffect, useRef, useState} from "react";
-import {Box, IconButton, Modal, Stack, Typography} from "@mui/material";
+import { CircularProgress } from "@axelor/ui";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Box, IconButton, Modal, Stack, Typography } from "@mui/material";
 import CameraAltOutlinedIcon from '@mui/icons-material/CameraAltOutlined';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
-import {toast} from "react-toastify";
-import {readCookie} from "@/services/client/client.ts";
+import { toast } from "react-toastify";
+import { readCookie } from "@/services/client/client.ts";
 
-const CSRF_HEADER_NAME = "X-CSRF-Token";
+interface FaceIDCaptureProps {
+  setValue: React.Dispatch<React.SetStateAction<any>>;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  open: boolean;
+}
+
 const CSRF_COOKIE_NAME = "CSRF-TOKEN";
-
 const BASE_URL = ".";
 
 const modalStyles = {
@@ -23,34 +27,29 @@ const modalStyles = {
   p: 2,
 };
 
-export function FaceIDCapture({setValue, setOpen, open}) {
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
+export function FaceIDCapture({ setValue, setOpen, open }: FaceIDCaptureProps) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [loading, setLoading] = useState(false);
-  const [photo, setPhoto] = useState(null);
-
-  const cookies = () => decodeURIComponent(document.cookie)
-    .split('; ')
-    .reduce((acc, cur) => {
-      const [k, v] = cur.split('=');
-      return {...acc, [k]: v};
-    }, {});
+  const [photo, setPhoto] = useState<string | null>(null);
 
   const openCamera = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: {facingMode: {ideal: "environment"}},
+        video: { facingMode: { ideal: "environment" } },
         audio: false
       });
-      videoRef.current.srcObject = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
     } catch (error) {
       console.error("Error accessing the camera: ", error);
-      toast("Ошибка доступа к камере", {type: "error"});
+      toast("Ошибка доступа к камере", { type: "error" });
     }
   }, []);
 
   const closeCamera = useCallback(() => {
-    const stream = videoRef.current?.srcObject;
+    const stream = videoRef.current?.srcObject as MediaStream | null;
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
     }
@@ -66,30 +65,35 @@ export function FaceIDCapture({setValue, setOpen, open}) {
   }, [open, openCamera, closeCamera]);
 
   const handleCapturePhoto = async () => {
-    const context = canvasRef.current.getContext('2d');
+    const context = canvasRef.current?.getContext('2d');
     const video = videoRef.current;
+    if (!context || !video) return;
+
     const videoWidth = video.videoWidth;
     const videoHeight = video.videoHeight;
 
-    canvasRef.current.width = videoWidth;
-    canvasRef.current.height = videoHeight;
+    if (canvasRef.current) {
+      canvasRef.current.width = videoWidth;
+      canvasRef.current.height = videoHeight;
+    }
 
     context.drawImage(video, 0, 0, videoWidth, videoHeight);
-    const imageData = canvasRef.current.toDataURL('image/jpeg');
-    setPhoto(imageData);
+    const imageData = canvasRef.current?.toDataURL('image/jpeg');
 
-    const binaryData = base64ToBinary(imageData);
+    if (imageData) {
+      setPhoto(imageData);
+      const binaryData = base64ToBinary(imageData);
+      const partnerData = await handlePhotoAndFetchPartner(binaryData);
 
-    const partnerData = await handlePhotoAndFetchPartner(binaryData);
+      const data = partnerData?.data?.[0];
 
-    const data = partnerData?.data?.[0];
-
-    setValue(!data ? null : {
-      fullName: data.fullName,
-      id: data.id,
-      $version: data.version,
-      picture: data.picture
-    });
+      setValue(!data ? null : {
+        fullName: data.fullName,
+        id: data.id,
+        $version: data.version,
+        picture: data.picture
+      });
+    }
   };
 
   const base64ToBinary = (base64: string) => {
@@ -109,13 +113,13 @@ export function FaceIDCapture({setValue, setOpen, open}) {
       const response = await sendPhoto(binaryData);
       if (response) {
         const partnerData = await fetchPartnerData(response);
-        toast("Клиент найден!", {type: "success"});
+        toast("Клиент найден!", { type: "success" });
         return partnerData;
       } else {
         throw new Error("No partner data returned");
       }
     } catch (error) {
-      toast("Произошла ошибка", {type: "error"});
+      toast("Произошла ошибка", { type: "error" });
       console.error("Error handling photo or fetching partner:", error);
     } finally {
       setLoading(false);
@@ -130,7 +134,7 @@ export function FaceIDCapture({setValue, setOpen, open}) {
       credentials: 'include',
       headers: {
         'Content-Type': 'image/png',
-        CSRF_HEADER_NAME: readCookie(CSRF_COOKIE_NAME),
+        'X-CSRF-Token': '' + readCookie(CSRF_COOKIE_NAME),
       },
       body: binary.buffer
     });
@@ -148,7 +152,7 @@ export function FaceIDCapture({setValue, setOpen, open}) {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        CSRF_HEADER_NAME: readCookie(CSRF_COOKIE_NAME),
+        'X-CSRF-Token': '' + readCookie(CSRF_COOKIE_NAME)
       },
       body: JSON.stringify({})
     });
@@ -171,13 +175,13 @@ export function FaceIDCapture({setValue, setOpen, open}) {
         onClose={handleCloseModal}
       >
         <Box sx={modalStyles}>
-          <Stack direction="column" gap={2} sx={{width: {xs: "320px", md: "400px"}}}>
+          <Stack direction="column" gap={2} sx={{ width: { xs: "320px", md: "400px" } }}>
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               <Typography variant="h6">
                 Распознать клиента
               </Typography>
               <IconButton onClick={handleCloseModal}>
-                <CloseOutlinedIcon/>
+                <CloseOutlinedIcon />
               </IconButton>
             </Stack>
             {open ? (
@@ -186,8 +190,8 @@ export function FaceIDCapture({setValue, setOpen, open}) {
                   display: 'block', border: "1px solid #80A9F8",
                   width: "100%", height: "auto", borderRadius: 40
                 }}></video>
-                {loading ? <CircularProgress/> : <IconButton onClick={handleCapturePhoto}>
-                  <CameraAltOutlinedIcon color="primary" fontSize="large"/>
+                {loading ? <CircularProgress /> : <IconButton onClick={handleCapturePhoto}>
+                  <CameraAltOutlinedIcon color="primary" fontSize="large" />
                 </IconButton>}
               </Stack>
             ) : (
@@ -197,16 +201,16 @@ export function FaceIDCapture({setValue, setOpen, open}) {
                   borderRadius: 10,
                   objectFit: "contain",
                   width: "100%",
-                }}/>
+                }} />
                 <IconButton onClick={openCamera}>
-                  <CloseOutlinedIcon color="primary" fontSize="large"/>
+                  <CloseOutlinedIcon color="primary" fontSize="large" />
                 </IconButton>
               </Stack>
             )}
           </Stack>
         </Box>
       </Modal>
-      <canvas ref={canvasRef} style={{display: 'none'}}></canvas>
+      <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
     </Box>
   );
 }
