@@ -66,3 +66,4 @@ export * from "./url";
 export * from "./widget-select";
 export * from "./wkf-status";
 export * from "./face-id";
+export * from "./product-scan";
