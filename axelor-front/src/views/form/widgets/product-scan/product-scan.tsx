@@ -21,7 +21,7 @@ import {
 import { DataContext, DataRecord } from '@/services/client/data.types';
 import { toKebabCase } from '@/utils/names';
 import { usePermission, usePrepareWidgetContext } from '../../builder/form';
-import { FieldControl } from '../../builder/form-field';
+import { FieldControl } from '@/views/form/builder';
 import { useFormRefresh } from '../../builder/scope';
 import { FieldProps } from '../../builder/types';
 import { removeVersion } from '../../builder/utils';
@@ -314,7 +314,7 @@ export function ProductScan(props: FieldProps<DataRecord> & { isSuggestBox?: boo
 
   const [openFaceId, setOpenFaceId] = useState(false);
   const [cameraStarted, setCameraStarted] = useState(false);
-  const html5QrCodeRef = useRef(null);
+  const html5QrCodeRef = useRef<any>(null);
   const qrCodeRegionId = 'qr-code-region';
 
   const stopCamera = () => {
@@ -341,8 +341,7 @@ export function ProductScan(props: FieldProps<DataRecord> & { isSuggestBox?: boo
   const startCamera = () => {
     const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
-    const qrCodeSuccessCallback = async (decodedText) => {
-      console.log('Decoded Text: ', decodedText);
+    const qrCodeSuccessCallback = async (decodedText: string) => {
       let product = await onSuccess(decodedText);
       setValue(!product ? null : {
         code: product?.code,
@@ -353,12 +352,12 @@ export function ProductScan(props: FieldProps<DataRecord> & { isSuggestBox?: boo
       handleClose();
     };
 
-    const onSuccess = async (code) => {
+    const onSuccess = async (code: string) => {
       try {
         const response = await fetch(`${BASE_URL}/ws/product/barcode/${code}`, {
           credentials: 'include',
           headers: {
-            [CSRF_HEADER_NAME]: readCookie(CSRF_COOKIE_NAME),
+            [CSRF_HEADER_NAME]: String(readCookie(CSRF_COOKIE_NAME)),
           }
         });
         if (!response.ok) throw new Error(`Product with code "${code}" not found`);
@@ -398,19 +397,15 @@ export function ProductScan(props: FieldProps<DataRecord> & { isSuggestBox?: boo
     
   };
   
-  // useEffect(() => {
-  //   if (openFaceId) {
-  //     setTimeout(() => {
-  //       startCamera();
-  //     }, 100);
-  //   } else if (cameraStarted) {
-  //     stopCamera();
-  //   }
-  // }, [openFaceId, startCamera, stopCamera]);
-  
-  const qwe = () => {
-    console.log(123)
-  }
+  useEffect(() => {
+    if (openFaceId) {
+      setTimeout(() => {
+        startCamera();
+      }, 100);
+    } else if (cameraStarted) {
+      stopCamera();
+    }
+  }, [openFaceId, startCamera, stopCamera]);
 
   return (
     <FieldControl {...props}>
@@ -454,13 +449,14 @@ export function ProductScan(props: FieldProps<DataRecord> & { isSuggestBox?: boo
         open={openFaceId}
         aria-labelledby="qr-modal-title"
         aria-describedby="qr-modal-description"
+        disableAutoFocus
         autoFocus={false}>
         <Box sx={modalStyle} autoFocus={false}>
           <Typography tabIndex={-1} id="qr-modal-title" variant="h6" component="h2">
             Scan QR Code
           </Typography>
           <div id={qrCodeRegionId} tabIndex={-1} style={{ width: '100%', height: '300px' }}></div>
-          <Button tabIndex={-1} onClick={qwe} color="primary" sx={{ mt: 2 }}>
+          <Button tabIndex={-1} onClick={handleCloseButton} color="primary" sx={{ mt: 2 }}>
             Close
           </Button>
         </Box>
