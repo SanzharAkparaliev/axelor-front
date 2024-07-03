@@ -1,8 +1,6 @@
 import { useAtom, useAtomValue } from "jotai";
-import { useCallback, useMemo, useState } from "react";
-
+import React, { useCallback, useMemo, useState } from "react";
 import { MaterialIcon } from "@axelor/ui/icons/material-icon";
-
 import { Select, SelectIcon, SelectValue } from "@/components/select";
 import { useAsyncEffect } from "@/hooks/use-async-effect";
 import { usePermitted } from "@/hooks/use-permitted";
@@ -17,7 +15,6 @@ import {
 } from "@/hooks/use-relation";
 import { DataContext, DataRecord } from "@/services/client/data.types";
 import { toKebabCase } from "@/utils/names";
-
 import { usePermission, usePrepareWidgetContext } from "../../builder/form";
 import { FieldControl } from "../../builder/form-field";
 import { useFormRefresh } from "../../builder/scope";
@@ -25,6 +22,7 @@ import { FieldProps } from "../../builder/types";
 import { removeVersion } from "../../builder/utils";
 import { ViewerInput, ViewerLink } from "../string/viewer";
 import { useOptionLabel } from "./utils";
+import {Tree} from "@/views/form/widgets/tree";
 
 export function ManyToOne(
   props: FieldProps<DataRecord> & { isSuggestBox?: boolean },
@@ -53,6 +51,7 @@ export function ManyToOne(
   } = schema;
   const [value, setValue] = useAtom(valueAtom);
   const [hasSearchMore, setSearchMore] = useState(false);
+  const [openModal, setOpenModal] = useState(false)
   const { hasButton } = usePermission(schema, widgetAtom, perms);
   const { attrs } = useAtomValue(widgetAtom);
   const { title, focus, required, domain, hidden } = attrs;
@@ -261,6 +260,10 @@ export function ManyToOne(
       icon: <MaterialIcon icon="search" />,
       onClick: showSelect,
     };
+    const tree: SelectIcon = {
+      icon: <MaterialIcon icon="function" />,
+      onClick: () => setOpenModal(true),
+    };
 
     const result: SelectIcon[] = [];
 
@@ -270,6 +273,7 @@ export function ManyToOne(
       if (!canEdit && canView) result.push(view);
       if (canNew) result.push(add);
       if (canSelect) result.push(find);
+      if (canSelect) result.push(tree);
     }
 
     return result;
@@ -331,6 +335,7 @@ export function ManyToOne(
           toggleIcon={isSuggestBox ? undefined : false}
         />
       )}
+      <Tree openModal={openModal} setOpenModal={setOpenModal} />
     </FieldControl>
   );
 }
