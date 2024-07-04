@@ -1,11 +1,8 @@
-import { useAtom, useAtomValue } from "jotai";
-import { useCallback, useMemo, useState } from "react";
-
-import { MaterialIcon } from "@axelor/ui/icons/material-icon";
-
-import { Select, SelectIcon, SelectValue } from "@/components/select";
-import { useAsyncEffect } from "@/hooks/use-async-effect";
-import { usePermitted } from "@/hooks/use-permitted";
+import React, {useCallback, useMemo, useState} from "react";
+import {useAtom} from "jotai";
+import {FieldControl, FieldProps, usePermission, usePrepareWidgetContext} from "@/views/form/builder";
+import {DataContext, DataRecord} from "@/services/client/data.types.ts";
+import {useAtomValue} from "jotai/index";
 import {
   useBeforeSelect,
   useCompletion,
@@ -13,20 +10,21 @@ import {
   useEditor,
   useEditorInTab,
   useEnsureRelated,
-  useSelector,
+  useSelector
 } from "@/hooks/use-relation";
-import { DataContext, DataRecord } from "@/services/client/data.types";
-import { toKebabCase } from "@/utils/names";
+import {Select, SelectIcon, SelectValue} from "@/components/select";
+import {removeVersion} from "@/views/form/builder/utils.ts";
+import {usePermitted} from "@/hooks/use-permitted";
+import {toKebabCase} from "@/utils/names.ts";
+import {useOptionLabel} from "@/views/form/widgets/many-to-one/utils.ts";
+import {MaterialIcon} from "@axelor/ui/icons/material-icon";
+import {useAsyncEffect} from "@/hooks/use-async-effect";
+import {useFormRefresh} from "@/views/form/builder/scope.ts";
+import {ViewerInput, ViewerLink} from "@/views/form/widgets/string/viewer.tsx";
+import {TnvedTree} from "@/views/form/widgets/custom-tree/tree-utils.tsx";
 
-import { usePermission, usePrepareWidgetContext } from "../../builder/form";
-import { FieldControl } from "../../builder/form-field";
-import { useFormRefresh } from "../../builder/scope";
-import { FieldProps } from "../../builder/types";
-import { removeVersion } from "../../builder/utils";
-import { ViewerInput, ViewerLink } from "../string/viewer";
-import { useOptionLabel } from "./utils";
 
-export function ManyToOne(
+export function CustomTree(
   props: FieldProps<DataRecord> & { isSuggestBox?: boolean },
 ) {
   const {
@@ -52,6 +50,8 @@ export function ManyToOne(
     perms,
   } = schema;
   const [value, setValue] = useAtom(valueAtom);
+  const [openFaceId, setOpenFaceId] = useState(false);
+  const [openTree, setOpenTree] = useState(false);
   const [hasSearchMore, setSearchMore] = useState(false);
   const { hasButton } = usePermission(schema, widgetAtom, perms);
   const { attrs } = useAtomValue(widgetAtom);
@@ -261,10 +261,20 @@ export function ManyToOne(
       icon: <MaterialIcon icon="search" />,
       onClick: showSelect,
     };
+    const scan: SelectIcon = {
+      icon: <MaterialIcon icon="sensor_occupied" />,
+      onClick: () => setOpenFaceId(true),
+    };
+    const tree: SelectIcon = {
+      icon: <MaterialIcon icon="function" />,
+      onClick: () => setOpenTree(true),
+    };
 
     const result: SelectIcon[] = [];
 
     if (target) {
+      if (canSelect) result.push(scan);
+      if (canSelect) result.push(tree);
       if (canEdit && canView) result.push(edit);
       if (isSuggestBox) return result;
       if (!canEdit && canView) result.push(view);
@@ -292,7 +302,7 @@ export function ManyToOne(
   if (hidden) {
     return null;
   }
-
+  
   return (
     <FieldControl {...props}>
       {readonly &&
@@ -331,6 +341,7 @@ export function ManyToOne(
           toggleIcon={isSuggestBox ? undefined : false}
         />
       )}
+      <TnvedTree setValue={((val) => setValue(val))} setOpenModal={setOpenTree} openModal={openTree}/>
     </FieldControl>
   );
 }
