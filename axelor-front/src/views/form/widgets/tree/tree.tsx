@@ -1,17 +1,30 @@
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import {Collapse, List, Stack, TextField} from "@mui/material";
-import Button from "@mui/material/Button";
 import Modal from "@mui/material/Modal";
-import React, {useCallback, useEffect, useMemo, useState} from "react";
-import MenuItem from "@mui/material/MenuItem";
+import React, {ChangeEvent, useCallback, useEffect, useState} from "react";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {readCookie} from "@/services/client/client.ts";
+import {Box, TextField, Button, CircularProgress} from "@axelor/ui";
+import Typography from "@mui/material/Typography";
+import styles from "./tree.module.scss";
 
-const TreeNode = ({ node, onExpand }) => {
+interface IDataItem {
+  id: number;
+  treeName: string;
+  _children?: number;
+}
+
+interface IData {
+  data: IDataItem[];
+}
+
+
+const CSRF_HEADER_NAME = 'X-CSRF-Token';
+const CSRF_COOKIE_NAME = 'CSRF-TOKEN';
+const BASE_URL = '.';
+
+const TreeNode = ({ node, onExpand }: {node: IDataItem, onExpand?: (id: number, expanded: boolean) => void}) => {
   const [expanded, setExpanded] = useState(false);
-  const [children, setChildren] = useState(null);
+  const [children, setChildren] = useState<IData | null>(null);
 
   const handleExpand = async () => {
     if (!expanded && !children) {
@@ -43,68 +56,64 @@ const TreeNode = ({ node, onExpand }) => {
   };
 
   return (
-    <div>
-      <div onClick={handleExpand}>
-        {node.treeName} {expanded ? '-' : '+'}
-      </div>
+    <Box className={styles.tree}>
+      <Box onClick={handleExpand} className={styles.tree_row} style={{
+        backgroundColor: expanded ? "#f0f0f0" : "#fff",
+        color: expanded ? "#000" : "#5A5A7C"
+      }}>
+        {node.treeName}
+        {node._children &&
+          <Typography className={styles.tree_row__title}>
+            {node._children}
+            {expanded ? <ExpandMoreIcon /> : <ExpandLessIcon />}
+          </Typography>
+        }
+      </Box>
       {expanded && children && (
-        <div style={{ paddingLeft: 20 }}>
+        <Box style={{ paddingLeft: 20 }}>
           {children?.data?.map(child => (
             <TreeNode key={child.id} node={child} onExpand={onExpand} />
           ))}
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };
 
-const CSRF_HEADER_NAME = 'X-CSRF-Token';
-const CSRF_COOKIE_NAME = 'CSRF-TOKEN';
-const BASE_URL = '.';
-
 export function Tree({openModal, setOpenModal}: {openModal: boolean, setOpenModal: (openModal: boolean) => void}) {
-  const [data, setData] = useState([])
+  const [data, setData] = useState<IData | null>(null)
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   
-  const modalStyle = useMemo(() => ({
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    p: 4,
-  }), []);
-  
-  const handleSearchChange = (event) => {
+  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
   };
 
   const fetchItems = async () => {
-      const response = await fetch(`${BASE_URL}/ws/rest/com.axelor.apps.pndp.db.TnvedPositionCode/search`, {
-        method: "POST",
-        credentials: 'include',
-        headers: {
-          "Content-Type": "application/json",
-          [CSRF_HEADER_NAME]: String(readCookie(CSRF_COOKIE_NAME)),
+    setLoading(true)
+    const response = await fetch(`${BASE_URL}/ws/rest/com.axelor.apps.pndp.db.TnvedPositionCode/search`, {
+      method: "POST",
+      credentials: 'include',
+      headers: {
+        "Content-Type": "application/json",
+        [CSRF_HEADER_NAME]: String(readCookie(CSRF_COOKIE_NAME)),
+      },
+      body: JSON.stringify({
+        data: {
+          _domain: "self.parent IS NULL",
+          _domainContext: {
+            _countOn: "parent",
+            _id: null
+          }
         },
-        body: JSON.stringify({
-          data: {
-            _domain: "self.parent IS NULL",
-            _domainContext: {
-              _countOn: "parent",
-              _id: null
-            }
-          },
-          fields: ["id", "treeName", "parent", "code"],
-          sortBy: ["id"]
-        })
-      });
-      if (!response.ok) throw new Error(`not found`);
-      const items = await response.json();
-      setData(items)
+        fields: ["id", "treeName", "parent", "code"],
+        sortBy: ["id"]
+      })
+    }).finally(() => setLoading(false));
+    if (!response.ok) throw new Error(`not found`);
+    const items = await response.json();
+    setData(items)
   }
   
   useEffect(() => {
@@ -113,11 +122,8 @@ export function Tree({openModal, setOpenModal}: {openModal: boolean, setOpenModa
     }
   }, [openModal])
 
-  const handleExpand = (id, expanded) => {
-    console.log(`Node ${id} is now ${expanded ? 'expanded' : 'collapsed'}`);
-  };
-
   const handleSearch = useCallback(async () => {
+    setSearchLoading(true)
     const response = await fetch(`${BASE_URL}/ws/action`, {
       method: "POST",
       credentials: 'include',
@@ -134,7 +140,8 @@ export function Tree({openModal, setOpenModal}: {openModal: boolean, setOpenModa
         sortBy: ["id"],
         limit: null
       })
-    });
+    })
+      .finally(() => setSearchLoading(false));
     if (!response.ok) throw new Error(`not found`);
     const searchData = await response.json();
     setData(searchData);
@@ -146,36 +153,46 @@ export function Tree({openModal, setOpenModal}: {openModal: boolean, setOpenModa
       aria-labelledby="qr-modal-title"
       aria-describedby="qr-modal-description"
       disableAutoFocus
+      onClose={() => setOpenModal(false)}
       autoFocus={false}>
-      <Box sx={modalStyle} autoFocus={false}>
-        <Typography variant="h6" component="h2">
-          Tree
-        </Typography>
+      <Box className={styles.modal} autoFocus={false}>
+        <Box className={styles.content}>
+          <Typography variant="h6" component="h2">
+            Tree
+          </Typography>
 
-        <Box>
-          <Stack direction="row">
-            <TextField
-              label="Search"
-              variant="outlined"
-              fullWidth
-              margin="normal"
-              value={searchTerm}
-              onChange={handleSearchChange}
-            />
-            <Button onClick={handleSearch}>
-              Search
-            </Button>
-          </Stack>
-          <div style={{overflow: "scroll", maxHeight: "700px"}}>
-            {data?.data?.map(node => (
-              <TreeNode key={node.id} node={node} onExpand={handleExpand}/>
-            ))}
-          </div>
+          <Box className={styles.content}>
+            <Box className={styles.searchBar}>
+              <Box className={styles.search}>
+                <TextField
+                  label="Search"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                />
+              </Box>
+              <Button onClick={handleSearch} variant="primary" disabled={searchLoading}>
+                Search
+              </Button>
+            </Box>
+            
+            {loading ?
+              <Box className={styles.loader_wrapper}>
+                <div className={styles.loader}></div>
+              </Box> :
+              data?.data && 
+              <Box className={styles.content_tree}>
+                {data.data?.map(node => (
+                  <TreeNode key={node.id} node={node} />
+                ))}
+              </Box>
+            }
+            
+          </Box>
+
+          <Button onClick={() => setOpenModal(false)} color="primary">
+            Close
+          </Button>
         </Box>
-
-        <Button onClick={() => setOpenModal(false)} color="primary" sx={{mt: 2}}>
-          Close
-        </Button>
       </Box>
     </Modal>
   )
