@@ -449,7 +449,7 @@ export function ProductScan(props: FieldProps<DataRecord> & { isSuggestBox?: boo
         open={openFaceId}
         aria-labelledby="qr-modal-title"
         aria-describedby="qr-modal-description"
-        disableAutoFocus
+        disableAutoFocus 
         autoFocus={false}>
         <Box sx={modalStyle} autoFocus={false}>
           <Typography tabIndex={-1} id="qr-modal-title" variant="h6" component="h2">
