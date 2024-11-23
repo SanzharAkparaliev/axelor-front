@@ -10,13 +10,12 @@ import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 
 interface IDataItem {
   id: number;
-  treeName: string;
+  name: string;
   parent?: { id: number };
-  code: string;
   _children?: number;
   children: {
     id: number;
-    treeName: string
+    name: string
   }[];
   expanded?: boolean;
   isSearch: boolean;
@@ -37,7 +36,7 @@ const TreeNode = ({ node, onExpand, onSelect, selectedNode  }: {node: Record<str
 
   const handleExpand = async () => {
     if (!expanded && !children && !node.isSearch) {
-      const response = await fetch(`${BASE_URL}/ws/rest/com.axelor.apps.pndp.db.TnvedPositionCode/search`, {
+      const response = await fetch(`${BASE_URL}/ws/rest/com.axelor.apps.pndp.db.Category/search`, {
         method: "POST",
         credentials: 'include',
         headers: {
@@ -53,7 +52,7 @@ const TreeNode = ({ node, onExpand, onSelect, selectedNode  }: {node: Record<str
               _id: null
             }
           },
-          fields: ["id", "treeName", "parent", "code"],
+          fields: ["id", "name", "parent"],
           sortBy: ["id"]
         })
       });
@@ -65,7 +64,7 @@ const TreeNode = ({ node, onExpand, onSelect, selectedNode  }: {node: Record<str
   };
 
   const handleSelect = () => {
-    if (node.code.length === 10 && onSelect) {
+    if (onSelect) {
       onSelect(node);
     }
   };
@@ -76,7 +75,7 @@ const TreeNode = ({ node, onExpand, onSelect, selectedNode  }: {node: Record<str
         backgroundColor: expanded ? "#f0f0f0" : selectedNode?.id === node.id ? "#d3d3f5" : "#fff",
         color: expanded ? "#000" : "#5A5A7C"
       }}>
-        {node.treeName}
+        {node.name}
         {node._children &&
           <Typography className={styles.tree_row__title}>
             {node._children}
@@ -119,7 +118,7 @@ export function TnvedTree({openModal, setOpenModal, setValue}: {
 
   const fetchItems = async () => {
     setLoading(true)
-    const response = await fetch(`${BASE_URL}/ws/rest/com.axelor.apps.pndp.db.TnvedPositionCode/search`, {
+    const response = await fetch(`${BASE_URL}/ws/rest/com.axelor.apps.pndp.db.Category/search`, {
       method: "POST",
       credentials: 'include',
       headers: {
@@ -134,7 +133,7 @@ export function TnvedTree({openModal, setOpenModal, setValue}: {
             _id: null
           }
         },
-        fields: ["id", "treeName", "parent", "code"],
+        fields: ["id", "name", "parent"],
         sortBy: ["id"]
       })
     }).finally(() => setLoading(false));
@@ -159,14 +158,14 @@ export function TnvedTree({openModal, setOpenModal, setValue}: {
         [CSRF_HEADER_NAME]: String(readCookie(CSRF_COOKIE_NAME)),
       },
       body: JSON.stringify({
-        action: "com.axelor.apps.pndp.web.TnvedPositionCodeController:findTreeByNameOrCode",
+        action: "com.axelor.apps.pndp.web.CategoryController:findTreeByName",
         data: {
           product: searchTerm
         },
-        fields: ["id", "treeName", "parent", "code"],
+        fields: ["id", "name", "parent"],
         sortBy: ["id"],
         limit: null
-      })
+      }) 
     })
       .finally(() => setSearchLoading(false));
     if (!response.ok) throw new Error(`not found`);
@@ -210,9 +209,6 @@ export function TnvedTree({openModal, setOpenModal, setValue}: {
       autoFocus={false}>
       <Box className={styles.modal} autoFocus={false}>
         <Box className={styles.content}>
-          <Typography variant="h6" component="h2">
-            Tree
-          </Typography>
 
           <Box className={styles.content}>
             <Box className={styles.searchBar}>
@@ -242,9 +238,11 @@ export function TnvedTree({openModal, setOpenModal, setValue}: {
 
           </Box>
 
-          <Button onClick={() => setOpenModal(false)} color="primary">
-            Close
-          </Button>
+          <Box className={styles.closeBtn}>
+            <Button onClick={() => setOpenModal(false)} color="#fff" variant="primary">
+              Close
+            </Button>
+          </Box>
         </Box>
       </Box>
     </Modal>
