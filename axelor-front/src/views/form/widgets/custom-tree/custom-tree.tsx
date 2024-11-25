@@ -262,11 +262,11 @@ export function CustomTree(
       onClick: showSelect,
     };
     const scan: SelectIcon = {
-      icon: <MaterialIcon icon="sensor_occupied" />,
+      icon: <MaterialIcon icon="" />,
       onClick: () => setOpenFaceId(true),
     };
     const tree: SelectIcon = {
-      icon: <MaterialIcon icon="function" />,
+      icon: <MaterialIcon icon="query_stats" />,
       onClick: () => setOpenTree(true),
     };
 

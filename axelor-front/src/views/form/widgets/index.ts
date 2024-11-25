@@ -65,6 +65,6 @@ export * from "./toggle";
 export * from "./url";
 export * from "./widget-select";
 export * from "./wkf-status";
-export * from "./face-id";
+// export * from "./face-id";
 export * from "./product-scan";
 export * from "./custom-tree";
