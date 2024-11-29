@@ -12,7 +12,12 @@ interface IDataItem {
   id: number;
   name: string;
   parent?: { id: number };
-  product: {anme: string}[];
+  product: { 
+    name: string, 
+    category: {
+      name: string
+    }
+  }[];
   item: number;
   _children?: number;
   children: {
@@ -69,9 +74,7 @@ export const TreeNode = ({ node, onExpand, onSelect, selectedNode }: {
     }
     setExpanded(!expanded);
     if (onExpand) onExpand(node.id, !expanded);
-  };
 
-  const handleSelect = () => {
     if (!node?.item && !node._children) {
       if (onSelect) {
         onSelect(node);
@@ -79,10 +82,17 @@ export const TreeNode = ({ node, onExpand, onSelect, selectedNode }: {
     }
   };
 
+  const changeBgColor = () => {
+    if (expanded) return "#f0f0f0";
+    if (node?.category?.name && selectedNode?.id === node.id) return "#6c67fa8a";
+    if (node?.category?.name) return "#6c67fa";
+    return "#fff";
+  }
+
   return (
     <Box className={styles.tree}>
-      <Box onClick={handleExpand} onDoubleClick={handleSelect} className={styles.tree_row} style={{
-        backgroundColor: node._children == null && selectedNode?.id === node.id ? "#6c67fa" : expanded ? "#f0f0f0" : selectedNode?.id === node.id ? "#d3d3f5" : "#fff",
+      <Box onClick={handleExpand} className={styles.tree_row} style={{
+        backgroundColor: changeBgColor(),
         color: node._children == null && selectedNode?.id === node.id ? "#fff" : expanded ? "#000" : "#5A5A7C"
       }}>
         {node.name}
