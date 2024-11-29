@@ -68,3 +68,4 @@ export * from "./wkf-status";
 // export * from "./face-id";
 export * from "./product-scan";
 export * from "./custom-tree";
+export * from "./custom-tree-product";
