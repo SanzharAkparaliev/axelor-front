@@ -239,7 +239,7 @@ export function TnvedTree({openModal, setOpenModal, setValue}: {
           </Box>
 
           <Box className={styles.closeBtn}>
-            <Button onClick={() => setOpenModal(false)} color="#fff" variant="primary">
+            <Button onClick={() => setOpenModal(false)} color="white" variant="primary">
               Close
             </Button>
           </Box>

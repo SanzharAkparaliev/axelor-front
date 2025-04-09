@@ -136,7 +136,7 @@ export function FaceIDCapture({ setValue, setOpen, open }: FaceIDCaptureProps) {
         'Content-Type': 'image/png',
         'X-CSRF-Token': '' + readCookie(CSRF_COOKIE_NAME),
       },
-      body: binary.buffer
+      // body: binary.buffer
     });
 
     if (response.ok) {

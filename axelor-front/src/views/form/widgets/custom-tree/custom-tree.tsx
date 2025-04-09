@@ -1,8 +1,13 @@
-import React, {useCallback, useMemo, useState} from "react";
-import {useAtom} from "jotai";
-import {FieldControl, FieldProps, usePermission, usePrepareWidgetContext} from "@/views/form/builder";
-import {DataContext, DataRecord} from "@/services/client/data.types.ts";
-import {useAtomValue} from "jotai/index";
+import React, { useCallback, useMemo, useState } from "react";
+import { useAtom } from "jotai";
+import {
+  FieldControl,
+  FieldProps,
+  usePermission,
+  usePrepareWidgetContext,
+} from "@/views/form/builder";
+import { DataContext, DataRecord } from "@/services/client/data.types.ts";
+import { useAtomValue } from "jotai/index";
 import {
   useBeforeSelect,
   useCompletion,
@@ -10,19 +15,22 @@ import {
   useEditor,
   useEditorInTab,
   useEnsureRelated,
-  useSelector
+  useSelector,
 } from "@/hooks/use-relation";
-import {Select, SelectIcon, SelectValue} from "@/components/select";
-import {removeVersion} from "@/views/form/builder/utils.ts";
-import {usePermitted} from "@/hooks/use-permitted";
-import {toKebabCase} from "@/utils/names.ts";
-import {useOptionLabel} from "@/views/form/widgets/many-to-one/utils.ts";
-import {MaterialIcon} from "@axelor/ui/icons/material-icon";
-import {useAsyncEffect} from "@/hooks/use-async-effect";
-import {useFormRefresh} from "@/views/form/builder/scope.ts";
-import {ViewerInput, ViewerLink} from "@/views/form/widgets/string/viewer.tsx";
-import {TnvedTree} from "@/views/form/widgets/custom-tree/tree-utils.tsx";
-
+import { Select, SelectIcon, SelectValue } from "@/components/select";
+import { removeVersion } from "@/views/form/builder/utils.ts";
+import { usePermitted } from "@/hooks/use-permitted";
+import { toKebabCase } from "@/utils/names.ts";
+import { useOptionLabel } from "@/views/form/widgets/many-to-one/utils.ts";
+import { MaterialIcon } from "@axelor/ui/icons/material-icon";
+import { useAsyncEffect } from "@/hooks/use-async-effect";
+import { useFormRefresh } from "@/views/form/builder/scope.ts";
+import {
+  ViewerInput,
+  ViewerLink,
+} from "@/views/form/widgets/string/viewer.tsx";
+import { TnvedTree } from "@/views/form/widgets/custom-tree/tree-utils.tsx";
+import { Button } from "@axelor/ui";
 
 export function CustomTree(
   props: FieldProps<DataRecord> & { isSuggestBox?: boolean },
@@ -36,6 +44,7 @@ export function CustomTree(
     invalid,
     isSuggestBox,
   } = props;
+
   const {
     target,
     targetName,
@@ -49,10 +58,11 @@ export function CustomTree(
     searchLimit,
     perms,
   } = schema;
+
   const [value, setValue] = useAtom(valueAtom);
-  const [openFaceId, setOpenFaceId] = useState(false);
   const [openTree, setOpenTree] = useState(false);
   const [hasSearchMore, setSearchMore] = useState(false);
+
   const { hasButton } = usePermission(schema, widgetAtom, perms);
   const { attrs } = useAtomValue(widgetAtom);
   const { title, focus, required, domain, hidden } = attrs;
@@ -220,7 +230,6 @@ export function CustomTree(
 
   const ensureRelatedValues = useCallback(
     async (signal?: AbortSignal, refetch?: boolean) => {
-      // only handle ref-select
       if (value && schema.related) {
         updateRelated(value, refetch);
       }
@@ -235,14 +244,12 @@ export function CustomTree(
     }
   }, [schema.widget, valueRef, ensureRelatedValues]);
 
-  const getOptionKey = useCallback((option: DataRecord) => option.id!, []);
+  const getOptionKey = useCallback((rec: DataRecord) => rec.id ?? -1, []);
   const getOptionLabel = useOptionLabel(schema);
   const getOptionEqual = useCallback(
     (a: DataRecord, b: DataRecord) => a.id === b.id,
     [],
   );
-
-  const getOptionMatch = useCallback(() => true, []);
 
   const icons: SelectIcon[] = useMemo(() => {
     const edit: SelectIcon = {
@@ -257,14 +264,6 @@ export function CustomTree(
       icon: <MaterialIcon icon="add" />,
       onClick: () => handleEdit(false, { id: null }),
     };
-    const find: SelectIcon = {
-      icon: <MaterialIcon icon="search" />,
-      onClick: showSelect,
-    };
-    const scan: SelectIcon = {
-      icon: <MaterialIcon icon="" />,
-      onClick: () => setOpenFaceId(true),
-    };
     const tree: SelectIcon = {
       icon: <MaterialIcon icon="query_stats" />,
       onClick: () => setOpenTree(true),
@@ -273,13 +272,11 @@ export function CustomTree(
     const result: SelectIcon[] = [];
 
     if (target) {
-      if (canSelect) result.push(scan);
       if (canSelect) result.push(tree);
       if (canEdit && canView) result.push(edit);
       if (isSuggestBox) return result;
       if (!canEdit && canView) result.push(view);
       if (canNew) result.push(add);
-      if (canSelect) result.push(find);
     }
 
     return result;
@@ -289,59 +286,52 @@ export function CustomTree(
     canSelect,
     canView,
     handleEdit,
-    showSelect,
     isSuggestBox,
     target,
   ]);
 
   useAsyncEffect(ensureRelatedValues, [ensureRelatedValues]);
-
-  // register form:refresh
   useFormRefresh(onRefSelectRefresh);
 
   if (hidden) {
     return null;
   }
-  
+
   return (
     <FieldControl {...props}>
-      {readonly &&
-        (value && hasButton("view") ? (
+      {readonly ? (
+        value && hasButton("view") ? (
           <ViewerLink onClick={handleView}>{getOptionLabel(value)}</ViewerLink>
         ) : (
           <ViewerInput name={schema.name} value={getOptionLabel(value)} />
-        ))}
-      {readonly || (
+        )
+      ) : (
         <Select
           autoFocus={focus}
           required={required}
           invalid={invalid}
-          canSelect={canSelect}
-          autoComplete={canSuggest}
-          fetchOptions={fetchOptions}
-          options={[] as DataRecord[]}
-          optionKey={getOptionKey}
-          optionLabel={getOptionLabel}
-          optionEqual={getOptionEqual}
-          optionMatch={getOptionMatch}
+          autoComplete={false}
           value={value}
+          options={value ? [value] : []}
+          optionKey={(rec) => rec.id ?? -1}
+          optionLabel={(rec) => rec.name || rec.label || `#${rec.id}`}
+          optionEqual={(a, b) => a?.id === b?.id}
           placeholder={placeholder}
           onChange={handleChange}
           onOpen={onMenuOpen}
           onClose={onMenuClose}
-          canCreateOnTheFly={canNew && schema.create}
-          canShowNoResultOption={true}
-          onShowCreate={canNew ? showCreate : undefined}
-          onShowSelect={canSelect && hasSearchMore ? showSelect : undefined}
-          onShowCreateAndSelect={
-            canNew && schema.create ? showCreateAndSelect : undefined
-          }
           icons={icons}
           clearIcon={false}
-          toggleIcon={isSuggestBox ? undefined : false}
+          toggleIcon={false}
+          canShowNoResultOption={false}
+          canCreateOnTheFly={false}
         />
       )}
-      <TnvedTree setValue={((val) => setValue(val))} setOpenModal={setOpenTree} openModal={openTree}/>
+      <TnvedTree
+        setValue={(val: DataRecord | null | undefined) => setValue(val)}
+        setOpenModal={setOpenTree}
+        openModal={openTree}
+      />
     </FieldControl>
   );
 }

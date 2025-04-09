@@ -118,7 +118,7 @@ export const TreeNode = ({ node, onExpand, onSelect, selectedNode }: {
           ))) : 
           (expanded && children && children?.data ? children.data?.map(child => (
             <TreeNode key={child.id} node={child} onExpand={onExpand} onSelect={onSelect} selectedNode={selectedNode} />
-          )) : expanded && node.product?.map(child => (
+          )) : expanded && node.product?.map((child: Record<string, any>) => (
             <Box>
               <TreeNode key={child.id} node={child} onExpand={onExpand} onSelect={onSelect} selectedNode={selectedNode} />
             </Box>
@@ -272,7 +272,7 @@ export function TnvedTreeProduct({openModal, setOpenModal, setValue}: {
           </Box>
 
           <Box className={styles.closeBtn}>
-            <Button onClick={() => setOpenModal(false)} color="#fff" variant="primary">
+            <Button onClick={() => setOpenModal(false)} color="white" variant="primary">
               Close
             </Button>
           </Box>

@@ -323,14 +323,14 @@ export function MessageBox({
 }) {
   const rtl = useTheme().dir === "rtl";
 
-  const filters = useMemo(
-    () => [
-      { title: i18n.get("All"), value: undefined },
-      { title: i18n.get("Comments"), value: "comment" },
-      { title: i18n.get("Notifications"), value: "notification" },
-    ],
-    [],
-  );
+  // const filters = useMemo(
+  //   () => [
+  //     { title: i18n.get("All"), value: undefined },
+  //     { title: i18n.get("Comments"), value: "comment" },
+  //     { title: i18n.get("Notifications"), value: "notification" },
+  //   ],
+  //   [],
+  // );
 
   return (
     <Panel
@@ -342,7 +342,7 @@ export function MessageBox({
       {!isMail && (
         <Box d="flex" flexDirection="column" g={2} mb={3}>
           <Box d="flex" flexDirection={{ base: "column", md: "row" }} g={2}>
-            {filters.map(({ title, value }, ind) => (
+            {/* {filters.map(({ title, value }, ind) => (
               <Button
                 key={ind}
                 variant="primary"
@@ -352,7 +352,7 @@ export function MessageBox({
               >
                 {title}
               </Button>
-            ))}
+            ))} */}
           </Box>
           {filter !== "notification" && (
             <MessageInput

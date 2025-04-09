@@ -15,3 +15,4 @@ export * from "./rating";
 export * from "./single-select";
 export * from "./tag-select";
 export * from "./url";
+export * from "./large-text"

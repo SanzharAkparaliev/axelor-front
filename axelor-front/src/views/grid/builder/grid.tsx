@@ -175,7 +175,6 @@ export const Grid = forwardRef<
 
   const formRef = useRef<GridFormHandler>(null);
   const [event, setEvent] = useState("");
-  const { isMobile } = useDevice();
   const { data: user } = useSession();
   const allowCheckboxSelection =
     (view.selector ?? user?.view?.grid?.selection ?? "checkbox") === "checkbox";
@@ -397,11 +396,9 @@ export const Grid = forwardRef<
         onEdit?.(row.record);
       } else if (col.name === "$$delete") {
         onDelete?.([row.record]);
-      } else if (isMobile) {
-        onView?.(row.record);
       }
     },
-    [isMobile, onNew, onEdit, onView, onDelete],
+    [onNew, onEdit, onView, onDelete],
   );
 
   const handleRowDoubleClick = useCallback(
@@ -634,8 +631,7 @@ export const Grid = forwardRef<
           allowRowExpand={expandable}
           sortType="state"
           selectionType="multiple"
-          {...(editable &&
-            !isMobile && {
+          {...(editable && {
               editable,
               editRowRenderer: CustomFormRenderer,
               onRecordSave: onSave,

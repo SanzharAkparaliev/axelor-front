@@ -133,7 +133,7 @@ export function MessageInput({
 
   return (
     <Box>
-      <TextareaAutoSizeInput
+      {/* <TextareaAutoSizeInput
         value={value}
         autoFocus={focus}
         placeholder={i18n.get("Write your comment here")}
@@ -148,10 +148,10 @@ export function MessageInput({
           data={files}
           onRemove={handleFileRemove}
         />
-      )}
+      )} */}
 
       <Box mt={2} d="flex">
-        <Button
+        {/* <Button
           variant="primary"
           size="sm"
           disabled={!hasValue}
@@ -159,12 +159,13 @@ export function MessageInput({
           {...(!focus && {
             onMouseDown: (e) => e.preventDefault(),
           })}
+          style={{width: "100%"}}
         >
           <div className={styles.title}>
             {i18n.get("Post")}
           </div>
-        </Button>
-        <Button
+        </Button> */}
+        {/* <Button
           size="sm"
           ms={2}
           variant="primary"
@@ -174,8 +175,8 @@ export function MessageInput({
           <div className={styles.title}>
             <MaterialIcon icon="attach_file"/>
           </div>
-        </Button>
-        <Button
+        </Button> */}
+        {/* <Button
           size="sm"
           ms={2}
           variant="primary"
@@ -185,7 +186,7 @@ export function MessageInput({
           <div className={styles.title}>
             <MaterialIcon icon="edit"/>
           </div>
-        </Button>
+        </Button> */}
       </Box>
     </Box>
 );
