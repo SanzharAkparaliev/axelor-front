@@ -8,6 +8,14 @@ import { MaterialIcon } from "@axelor/ui/icons/material-icon";
 import { ViewerInput, ViewerLink } from "@/views/form/widgets/string/viewer.tsx";
 import { TnvedTreeProduct } from "@/views/form/widgets/custom-tree-product/tree-utils-product.tsx";
 
+// 💡 Можно также перенести эти стили в .scss файл
+const truncateStyle: React.CSSProperties = {
+  maxWidth: "180px",
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+};
+
 export function CustomTreeProduct(
   props: FieldProps<DataRecord> & { isSuggestBox?: boolean },
 ) {
@@ -43,50 +51,49 @@ export function CustomTreeProduct(
           <ViewerInput name={schema.name} value="" />
         )
       ) : (
-        <Select
-          autoFocus={focus}
-          required={required}
-          invalid={invalid}
-          autoComplete={false}
-          fetchOptions={undefined}
-          value={value}
-          options={value ? [value] : []}
-          optionKey={(rec) => rec.id}
-          optionLabel={(rec) => rec.name || `#${rec.id}`}
-          optionEqual={(a, b) => a?.id === b?.id}
-          placeholder={placeholder}
-          onChange={(val) => {
-            console.log("🧩 Выбрано из дерева:", val);
-            setValue(val);
-          }}
-          icons={[treeIcon]}
-          clearIcon={false}
-          toggleIcon={false}
-        />
+        <div style={truncateStyle}>
+          <Select
+            autoFocus={focus}
+            required={required}
+            invalid={invalid}
+            autoComplete={false}
+            fetchOptions={undefined}
+            value={value}
+            options={value ? [value] : []}
+            optionKey={(rec) => rec.id}
+            optionLabel={(rec) => rec.name || `#${rec.id}`}
+            optionEqual={(a, b) => a?.id === b?.id}
+            placeholder={placeholder}
+            onChange={(val) => {
+              console.log("🧩 Выбрано из дерева:", val);
+              setValue(val);
+            }}
+            icons={[treeIcon]}
+            clearIcon={false}
+            toggleIcon={false}
+          />
+        </div>
       )}
-<TnvedTreeProduct
-  setValue={(val: DataRecord | null | undefined) => {
-    if (!val) return;
 
-    const isCategory = val.product !== undefined; // Категория
-    const hasProducts = Array.isArray(val.product) && val.product.length > 0;
-    const hasChildren = val._children && val._children > 0; // дочерние категории (даже если они ещё не загружены)
+      <TnvedTreeProduct
+        setValue={(val: DataRecord | null | undefined) => {
+          if (!val) return;
 
-    // 🔒 Блокируем выбор "пустой" категории
-    if (isCategory && !hasProducts && !hasChildren) {
-      console.warn("❌ Пустая категория выбрана, отменяем:", val.name);
-      return;
-    }
+          const isCategory = val.product !== undefined;
+          const hasProducts = Array.isArray(val.product) && val.product.length > 0;
+          const hasChildren = val._children && val._children > 0;
 
-    // ✅ Продукт или категория с содержимым
-    console.log("✅ Выбран элемент:", val.name);
-    setValue(val);
-  }}
-  setOpenModal={setOpenTree}
-  openModal={openTree}
-/>
+          if (isCategory && !hasProducts && !hasChildren) {
+            console.warn("❌ Пустая категория выбрана, отменяем:", val.name);
+            return;
+          }
 
-
+          console.log("✅ Выбран элемент:", val.name);
+          setValue(val);
+        }}
+        setOpenModal={setOpenTree}
+        openModal={openTree}
+      />
     </FieldControl>
   );
 }
