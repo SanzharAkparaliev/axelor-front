@@ -6,6 +6,7 @@ import styles from "@/views/form/widgets/custom-tree-product/tree-product.module
 import Typography from "@mui/material/Typography";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import {alerts} from "@/components/alerts";
 
 
 interface IDataItem {
@@ -84,8 +85,8 @@ export const TreeNode = ({ node, onExpand, onSelect, selectedNode }: {
 
   const changeBgColor = () => {
     if (expanded) return "#f0f0f0";
-    if (node?.category?.name && selectedNode?.id === node.id) return "#6c67fa8a";
-    if (node?.category?.name) return "#6c67fa";
+    if (node?.category?.name && selectedNode?.id === node.id) return "#cfceff8a";
+    if (node?.category?.name) return "#E0E0FF8A";
     return "#fff";
   }
 
@@ -93,7 +94,7 @@ export const TreeNode = ({ node, onExpand, onSelect, selectedNode }: {
     <Box className={styles.tree}>
       <Box onClick={handleExpand} className={styles.tree_row} style={{
         backgroundColor: changeBgColor(),
-        color: node._children == null && selectedNode?.id === node.id ? "#fff" : expanded ? "#000" : "#5A5A7C"
+        color: node._children == null && selectedNode?.id === node.id ? "#000" : expanded ? "#000" : "#5A5A7C"
       }}>
         {node.name}
         {node._children ? (
@@ -227,9 +228,17 @@ export function TnvedTreeProduct({openModal, setOpenModal, setValue}: {
   };
 
   const handleSelect = (node: Record<string, any>) => {
-    setValue(node)
+    if (node?.product) {
+      alerts.warn({
+        title: "Внимание",
+        message: "В данной категории нет товаров",
+      });
+      return;
+    }
+    
+    setValue(node);
     setSelectedNode(node);
-    setOpenModal(false)
+    setOpenModal(false);
   };
 
   return (
