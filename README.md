@@ -33,3 +33,40 @@ Gradle (Groovy)
 ```xml
 implementation 'io.github.syimyk2005:qr-service:0.4.0'
 ```
+Gradle (Kotlin)
+```xml
+implementation("io.github.syimyk2005:qr-service:0.4.0")
+```
+
+Конфигурация
+application.properties
+```xml
+# Base URL API сервиса
+qr.service.base-url=https://api.example.com
+
+# API ключ для доступа
+qr.service.api-key=YOUR_REAL_API_KEY
+```
+application.yml
+```xml
+qr:
+  service:
+    base-url: https://api.example.com
+    api-key: YOUR_REAL_API_KEY
+```
+Важно: используйте qr.service.api-key, а не qr.api.key.
+
+
+## Быстрый старт
+Ниже приведены примеры использования клиентов напрямую из Java-кода.
+
+1) Pre-create — предварительное создание документа (получение QR)
+Импорты
+```java
+import qr.service.client.PreCreateClient;
+import qr.service.domain.PreCreateRequest;
+```
+
+
+
+
