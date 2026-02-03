@@ -30,17 +30,17 @@
 ```
 
 Gradle (Groovy)
-```xml
+```gradlew
 implementation 'io.github.syimyk2005:qr-service:0.4.0'
 ```
 Gradle (Kotlin)
-```xml
+```gradlew
 implementation("io.github.syimyk2005:qr-service:0.4.0")
 ```
 
 Конфигурация
 application.properties
-```xml
+```gradlew
 # Base URL API сервиса
 qr.service.base-url=https://api.example.com
 
@@ -48,7 +48,7 @@ qr.service.base-url=https://api.example.com
 qr.service.api-key=YOUR_REAL_API_KEY
 ```
 application.yml
-```xml
+```gradlew
 qr:
   service:
     base-url: https://api.example.com
