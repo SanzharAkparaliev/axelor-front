@@ -1,29 +1,29 @@
-# Axelor Open Platform
+# qr-service (Java client) — README
 
-[uri_axelor]: https://www.axelor.com
-[uri_docs]: https://docs.axelor.com/adk/latest/
-[uri_docs_install]: https://docs.axelor.com/adk/latest/getting-started/index.html
-[uri_docs_tutorial]: https://docs.axelor.com/adk/latest/tutorial/step1.html
-[uri_docs_guide]: https://docs.axelor.com/adk/latest/dev-guide/index.html
-[uri_license]: https://www.gnu.org/licenses/agpl-3.0.html
-[uri_license_image]: https://img.shields.io/badge/License-AGPL%20v3-blue.svg
+Лёгкий Java-клиент для работы с QR Service по HTTP.
 
-[![License: AGPL v3][uri_license_image]][uri_license]
+**Версия:** `0.4.0`  
+**Java:** 11+ (рекомендовано 17)
 
-Axelor Open Platform is an open source Java framework to create modern business applications.
+---
 
-## Getting Started
+## Возможности
 
-Please follow the [installation guide][uri_docs_install] and
-the [tutorial][uri_docs_tutorial] to get started quickly and read the
-[developer's guide][uri_docs_guide] for more detailed documentation.
+Библиотека предоставляет готовые клиенты для трёх операций:
 
-## Contributing
+1. **Pre-create** — предварительное создание документа (получение QR)
+2. **Final upload** — загрузка финального подписанного файла
+3. **Update status** — обновление статуса документа
 
-Please see the [CONTRIBUTING](CONTRIBUTING.md) documentation.
+---
 
-## Links
+## Установка
 
-* [Axelor][uri_axelor]
-* [Documentation][uri_docs]
-* [License][uri_license]
+### Maven
+
+```xml
+<dependency>
+  <groupId>io.github.syimyk2005</groupId>
+  <artifactId>qr-service</artifactId>
+  <version>0.4.0</version>
+</dependency>
